@@ -115,25 +115,30 @@ grid_param = {'n_neighbors': list(range(2, 100)),
               'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
               'p': [1, 2, 3]}
 
+# таблицы для записи итоговых результатов
 result = pandas.DataFrame()
 time_result = pandas.DataFrame()
 
+# ОБУЧЕНИЕ МОДЕЛЕЙ
 # Оригинальные данные
-af.get_analiz(data_num, df_target, result, 'original', 0)
+af.get_analiz(data_num, df_target, result, time_result, 'original', 0)
 af.scatter_plot_func(DataFrame, data_num, 'price_group', "ORIGINAL")
 # Стандартизация
 df_stand = preprocessing.scale(data_num)
 df_stand = pandas.DataFrame(data=df_stand, index=data_num.index, columns=attributes)
-af.get_analiz(df_stand, df_target, result, 'standardization', 1)
+af.get_analiz(df_stand, df_target, result, time_result, 'standardization', 1)
 af.scatter_plot_func(DataFrame, df_stand, 'price_group', "STANDARDIZATION")
 # Нормализация
 df_norm = preprocessing.normalize(data_num)
 df_norm = pandas.DataFrame(data=df_norm, index=data_num.index, columns=attributes)
-af.get_analiz(df_norm, df_target, result, 'normalization', 2)
+af.get_analiz(df_norm, df_target, result, time_result, 'normalization', 2)
 af.scatter_plot_func(DataFrame, df_norm, 'price_group', "NORMALIZATION")
 
+# обновление индексации таблиц для корректного отображения
 result = result.sort_values(['it']).set_index(['it', 'type'], drop=True)
+time_result = time_result.sort_values(['it']).set_index(['it', 'type'], drop=True)
 
 print(result)
+print(time_result)
 plt.show()
 

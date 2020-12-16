@@ -181,7 +181,7 @@ DataFrame.loc[:, 'type_of_room'] = \
 
 pca = PCA(n_components = 2)
 df_labels = ['type_of_room', 'latitude', 'longitude', 'price',
-                'len_name', 'number_of_word', 'number__of_popular_word']
+             'len_name', 'number_of_word', 'number__of_popular_word']
 df = DataFrame[df_labels]
 pca.fit(df)
 data_reduced = pca.transform(df)

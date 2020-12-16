@@ -55,7 +55,7 @@ def scatter_plot_func(df, data_num, target, name):
 Функция применяющая один из методов классификации и возвращающая процент верного предсказания
 модели на тестовой выборке
 """
-def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_table, it, type_data):
+def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_table, time_result_table, it, type_data):
     # Обучение модели
     studying_time_start = timer()
     model.fit(X_train, y_train)
@@ -74,8 +74,11 @@ def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_tabl
     label = str(model)[:str(model).find('(')]
     result_table.loc[it, label] = true_pred / len(df)
     result_table.loc[it, 'type'] = type_data
-    result_table.loc[it, 'studying_time'] = studying_time_stop - studying_time_start
-    result_table.loc[it, 'predict_time'] = predict_time_stop - predict_time_start
+    # result_table.loc[it, 'studying_time'] = studying_time_stop - studying_time_start
+    # result_table.loc[it, 'predict_time'] = predict_time_stop - predict_time_start
+    time_result_table.loc[it, (label + ' ' + 'studying_time')] = studying_time_stop - studying_time_start
+    time_result_table.loc[it, (label + ' ' + 'predict_time')] = predict_time_stop - predict_time_start
+    time_result_table.loc[it, 'type'] = type_data
     # print('alg: ', label, '  type = ', type_data, '  % = ', true_pred / len(df))
 
 
@@ -83,7 +86,7 @@ def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_tabl
 Фукнция, разбивающая датафрем на несколько наборов тренеровочных и тестовых фреймов,
 применяющая эти фреймы к раличным методам классификации
 """
-def get_analiz(data, df_target, result_table, type_data, num_meth):
+def get_analiz(data, df_target, result_table, time_result_table, type_data, num_meth):
     kf = KFold(n_splits=3, shuffle=True, random_state=12)
     for ikf, (train_index, test_index) in enumerate(kf.split(data)):
         X_train, X_test = data.values[train_index], data.values[test_index]
@@ -93,20 +96,26 @@ def get_analiz(data, df_target, result_table, type_data, num_meth):
         # print('num_neth = ', num_meth)
 
         apply_clustering_method(KNeighborsClassifier(n_neighbors=35, algorithm='brute', p=2),
-                                X_train, y_train, X_test, y_test, result_table, 5*ikf + num_meth, type_data)
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                5*ikf + num_meth, type_data)
 
         apply_clustering_method(GaussianNB(var_smoothing=0.075),
-                                X_train, y_train, X_test, y_test, result_table, 5*ikf + num_meth, type_data)
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                5*ikf + num_meth, type_data)
 
         apply_clustering_method(DecisionTreeClassifier(criterion='gini', min_samples_split=10, max_depth=20),
-                                X_train, y_train, X_test, y_test, result_table, 5*ikf + num_meth, type_data)
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                5*ikf + num_meth, type_data)
 
         apply_clustering_method(Pipeline([("scaller", StandardScaler()), ("svm_clf", SVC(kernel="rbf", gamma=3, C=10))]),
-                                X_train, y_train, X_test, y_test, result_table, 5*ikf + num_meth, type_data)
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                5*ikf + num_meth, type_data)
 
         apply_clustering_method(RandomForestClassifier(n_estimators=40, criterion='gini', min_samples_split=6, max_depth=40),
-                                X_train, y_train, X_test, y_test, result_table, 5*ikf + num_meth, type_data)
-        result_table.loc[5*ikf+num_meth, 'it'] = ikf
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                5*ikf + num_meth, type_data)
+        result_table.loc[5 * ikf+num_meth, 'it'] = ikf
+        time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
 
         # Жирный кусок для автоматического подбора параметров
         # для всех вышеприменненных методов классификации
