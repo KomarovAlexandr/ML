@@ -111,10 +111,6 @@ corr = DataFrame[attributes + ['price_group']].corr()
 sns_hmap = seaborn.heatmap(abs(corr))
 sns_hmap.set_title("correlation PANDAS + SEABORN")
 
-grid_param = {'n_neighbors': list(range(2, 100)),
-              'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
-              'p': [1, 2, 3]}
-
 # таблицы для записи итоговых результатов
 result = pandas.DataFrame()
 time_result = pandas.DataFrame()
@@ -138,7 +134,12 @@ af.scatter_plot_func(DataFrame, df_norm, 'price_group', "NORMALIZATION")
 result = result.sort_values(['it']).set_index(['it', 'type'], drop=True)
 time_result = time_result.sort_values(['it']).set_index(['it', 'type'], drop=True)
 
+# Вывод в таблицы excel
+result.to_excel('result.xlsx')
+time_result.to_excel('time_result.xlsx')
+
 print(result)
 print(time_result)
-plt.show()
 
+plt.show()
+pandas.reset_option('max_columns')
