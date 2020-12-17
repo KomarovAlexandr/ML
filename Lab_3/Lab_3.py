@@ -54,8 +54,8 @@ corr.sort_values().to_excel('correlation.xlsx')
 DataFrame = DataFrame.dropna()
 # ИТОГОВЫЙ НАБОР ПРИЗНАКОВ
 attributes = ['GarageCars', 'GrLivArea', 'OverallQual', 'TotalBsmtSF', 'GarageArea', '1stFlrSF',
-              'FullBath', 'TotRmsAbvGrd', 'YearBuilt',
-              'ExterQual', 'KitchenQual', 'BsmtQual', 'GarageFinish', 'HeatingQC', 'GarageType']
+              #'FullBath', 'TotRmsAbvGrd', 'YearBuilt',
+              'ExterQual', 'KitchenQual', 'BsmtQual'] #'GarageFinish', 'HeatingQC', 'GarageType']
               #  'GrLivArea', 'OverallQual', 'TotalBsmtSF', 'GarageArea', '1stFlrSF'
               # 'FullBath', 'TotRmsAbvGrd', 'YearBuilt'
               # 'ExterQual', 'KitchenQual', 'BsmtQual', 'GarageFinish', 'HeatingQC', 'GarageType']
@@ -81,21 +81,17 @@ time_result = pandas.DataFrame()
 
 # ОБУЧЕНИЕ МОДЕЛЕЙ
 # Оригинальные данные
-pca = PCA(n_components=1)
-data = pca.fit_transform(data_num)
 af.get_analiz(data_num, df_target, result, time_result, 'original', 0)
 # af.scatter_plot_func(DataFrame, data_num, 'SalePrice', "ORIGINAL")
 # Стандартизация
 df_stand = preprocessing.scale(data_num)
 df_stand = pandas.DataFrame(data=df_stand, index=data_num.index, columns=attributes)
-data = pca.fit_transform(df_stand)
-af.get_analiz(pandas.DataFrame(data), df_target, result, time_result, 'standardization', 1)
+af.get_analiz(df_stand, df_target, result, time_result, 'standardization', 1)
 # af.scatter_plot_func(DataFrame, df_stand, 'SalePrice', "STANDARDIZATION")
 # Нормализация
 df_norm = preprocessing.normalize(data_num)
 df_norm = pandas.DataFrame(data=df_norm, index=data_num.index, columns=attributes)
-data = pca.fit_transform(df_norm)
-af.get_analiz(pandas.DataFrame(data), df_target, result, time_result, 'normalization', 2)
+af.get_analiz(df_norm, df_target, result, time_result, 'normalization', 2)
 # af.scatter_plot_func(DataFrame, df_norm, 'SalePrice', "NORMALIZATION")
 
 # Вывод в таблицы excel

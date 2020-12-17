@@ -4,9 +4,13 @@ from timeit import default_timer as timer
 from matplotlib import cm
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression, ElasticNet
+from sklearn.linear_model import LinearRegression, ElasticNet, LogisticRegression, BayesianRidge
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_log_error
+from sklearn.pipeline import make_pipeline
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
@@ -62,62 +66,43 @@ def scatter_plot_func(df, data_num, target, name):
 Функция применяющая один из методов классификации и возвращающая процент верного предсказания
 модели на тестовой выборке
 """
-def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_table, time_result_table, it, type_data):
+def apply_regression_method(model, X_train, y_train, X_test, y_test, result_table, time_result_table, it, type_data):
     degree = 4
     polynom_trans = PolynomialFeatures(degree=degree, include_bias=True)
-    print(X_train.shape)
     x2_train = polynom_trans.fit_transform(X=X_train)
     x2_test = polynom_trans.transform(X=X_test)
-    pca = PCA(n_components=3)
-
-    x_train_GrLivArea = X_train['GrLivArea']
-    x_test_GrLivArea = X_test['GrLivArea']
-
-    # Посморим на данные
-    plots = []
-    plt.ion()
-    labels = ['train', 'test']
-    fig, ax = plt.subplots()
-    ax.set_title('База данных')
-    ax.scatter(X_train[2], y_train, c='b', edgecolors='k', linewidths=1)
-    ax.scatter(X_test[2], y_test, c='r', edgecolors='k', linewidths=1)
-    ax.set(xlabel='x', ylabel='y')
-    ax.legend(labels, loc="lower right", title="sets", prop={'size': 10})
-    fig.canvas.draw_idle()
-    plt.pause(1)
 
     # Обучение модели
     studying_time_start = timer()
-    print('x2_train', x2_train)
-    print('y_train', y_train)
     model.fit(x2_train, y_train)
     studying_time_stop = timer()
 
     # Предсказание
     predict_time_start = timer()
-    score_train = model.score(X=x2_train, y=y_train)
-    score_test = model.score(X=x2_test, y=y_test)
     pred_train = model.predict(X=x2_train)
-    # pred_test = model.predict(X=x2_test)
-    mse_train = mean_squared_error(y_true=y_train, y_pred=pred_train)
-    # mse_test = mean_squared_error(y_true=y_test, y_pred=pred_test)
+    pred_test = model.predict(X=x2_test)
+    predict_time_stop = timer()
 
+    # Параметры и метрики модели
+    score_train = r2_score(y_train, pred_train)
+    score_test = r2_score(y_test, pred_test)
+    mse_train = mean_squared_error(y_true=y_train, y_pred=pred_train) / X_train.shape[0]
+    mse_test = mean_squared_error(y_true=y_test, y_pred=pred_test) / X_train.shape[0]
+    mae_train = mean_absolute_error(y_true=y_train, y_pred=pred_train) / X_train.shape[0]
+    mae_test = mean_absolute_error(y_true=y_test, y_pred=pred_test) / X_train.shape[0]
+    msle_train = mean_squared_log_error(y_true=y_train, y_pred=pred_train)
+    msle_test = mean_squared_log_error(y_true=y_test, y_pred=pred_test)
     print('r2 train: {:.3f}'.format(score_train))
     print('r2 test: {:.3f}'.format(score_test))
     print('mse train: {:.3f}'.format(mse_train))
-    # print('mse test: {:.3f}'.format(mse_test))
-    predict_time_stop = timer()
-    df = pandas.DataFrame({'Actual': y_train, 'Predicted': pred_train})
+    print('mse test: {:.3f}'.format(mse_test))
+    print('msle train: {:.3f}'.format(msle_train))
+    print('msle test: {:.3f}'.format(msle_test))
+
+
+    df = pandas.DataFrame({'Actual': y_test, 'Predicted': pred_test})
     print(str(model), '  ', type_data, '  IT: ', it)
     print(df)
-
-    ax.set_title('[Polynomial] degree={}, fit_intercept={}\n w={}, bias={}'.format(degree,
-                                                                                   model.fit_intercept,
-                                                                                   numpy.round(model.coef_, 4),
-                                                                                   numpy.round(model.intercept_, 4)))
-
-    # ax.plot(X_train, pred_train, color='k', linewidth=3)
-    ax.plot(X_train[2], pred_train, 'g.')
 
     plt.ioff()
     plt.show()
@@ -136,6 +121,31 @@ def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_tabl
     # print('alg: ', label, '  type = ', type_data, '  % = ', true_pred / len(df))
 
 
+class PolynomialRegression():
+    degr = 0
+    model = 0
+    polynom_trans = 0
+
+    def __init__(self, fit_intercept=True, normalize=False, copy_X=True,
+                 n_jobs=None, degree=1):
+        self.degr = degree
+        self.model = LinearRegression()
+        self.polynom_trans = PolynomialFeatures(degree=self.degr, include_bias=True)
+
+    def fit(self, X_train, y_train):
+        x_train = self.polynom_trans.fit_transform(X=X_train)
+        self.model.fit(x_train, y_train)
+
+    def predict(self, y_train):
+        return self.model.predict(y_train)
+
+    def get_params(self, deep=True):
+        return self.model.get_params(deep)
+
+    def set_params(self, *params):
+        self.degr = params.values()
+        self.polynom_trans = PolynomialFeatures(degree=self.degr, include_bias=True)
+
 """
 Фукнция, разбивающая датафрем на несколько наборов тренеровочных и тестовых фреймов,
 применяющая эти фреймы к раличным методам классификации
@@ -149,85 +159,34 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         # print('IT = ', ikf)
         # print('num_neth = ', num_meth)
         # LinearRegression(),
-        apply_clustering_method(ElasticNet(alpha=0.5, fit_intercept=False),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                ikf + num_meth, type_data)
+        # apply_regression_method(ElasticNet(alpha=0.2, fit_intercept=False),
+        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
+        #                         ikf + num_meth, type_data)
 
-        # apply_clustering_method(GaussianNB(var_smoothing=0.075),
-        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
-        #                         5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(DecisionTreeClassifier(criterion='gini', min_samples_split=10, max_depth=20),
-        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
-        #                         5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(Pipeline([("scaller", StandardScaler()), ("svm_clf", SVC(kernel="rbf", gamma=3, C=10))]),
-        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
-        #                         5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(RandomForestClassifier(n_estimators=40, criterion='gini', min_samples_split=6, max_depth=40),
-        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
-        #                         5*ikf + num_meth, type_data)
         # result_table.loc[5 * ikf+num_meth, 'it'] = ikf
         # time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
 
         # Жирный кусок для автоматического подбора параметров
-        # для всех вышеприменненных методов классификации
-        # print('num_meth = ', num_meth, '  It = ', ikf)
-        #
-        # grid_param = {'n_neighbors': list(range(2, 100)),
-        #                             'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
-        #                             'p': [1, 2, 3]}
-        # grid_search = RandomizedSearchCV(KNeighborsClassifier(), param_distributions=grid_param, n_iter=30)
-        # grid_search.fit(X_train, y_train)
-        # print('type = ', type_data, '  methot = ', str(KNeighborsClassifier()))
-        # print(grid_search.best_params_)
-        # print(grid_search.best_score_)
-        #
-        # grid_param = {'var_smoothing': list(numpy.arange(0, 1, 0.01))}
-        # grid_search = RandomizedSearchCV(GaussianNB(), param_distributions=grid_param, n_iter=30)
-        # grid_search.fit(X_train, y_train)
-        # print('type = ', type_data, '  methot = ', str(GaussianNB()))
-        # print(grid_search.best_params_)
-        # print(grid_search.best_score_)
-        #
-        # grid_param = {'criterion': ['gini', 'entropy'],
-        #               'min_samples_split': list(range(2, 12, 1)),
-        #               'max_depth': list(range(1, 100, 1))}
-        # grid_search = RandomizedSearchCV(DecisionTreeClassifier(), param_distributions=grid_param, n_iter=30)
-        # grid_search.fit(X_train, y_train)
-        # print('type = ', type_data, '  methot = ', str(DecisionTreeClassifier()))
-        # print(grid_search.best_params_)
-        # print(grid_search.best_score_)
-        #
-        # grid_param = {'kernel': ["rbf"],
-        #               'gamma': numpy.arange(0.1, 5, 0.1),
-        #               'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]}
-        # grid_search = RandomizedSearchCV(SVC(), param_distributions=grid_param, n_iter=30)
-        # grid_search.fit(X_train, y_train)
-        # print('type = ', type_data, '  methot = ', str(SVC()), '  rbf')
-        # print(grid_search.best_params_)
-        # print(grid_search.best_score_)
-        #
-        # if num_meth > 0:
-        #     grid_param = {'loss': ["squared_hinge"],
-        #                   'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-        #                   'max_iter': [1000000],
-        #                   'dual': [False],
-        #                   'penalty': ['l1']}
-        #     grid_search = RandomizedSearchCV(LinearSVC(),
-        #                                      param_distributions=grid_param, n_iter=7)
-        #     grid_search.fit(X_train, y_train)
-        #     print('type = ', type_data, '  methot = ', str(LinearSVC()))
-        #     print(grid_search.best_params_)
-        #     print(grid_search.best_score_)
-        #
-        # grid_param = {'n_estimators': range(2, 50, 2),
-        #               'criterion': ['gini', 'entropy'],
-        #               'min_samples_split': list(range(2, 12, 1)),
-        #               'max_depth': list(range(1, 100, 1))}
-        # grid_search = RandomizedSearchCV(RandomForestClassifier(), param_distributions=grid_param, n_iter=30)
-        # grid_search.fit(X_train, y_train)
-        # print('type = ', type_data, '  methot = ', str(RandomForestClassifier()))
-        # print(grid_search.best_params_)
-        # print(grid_search.best_score_)
+        # для всех вышеприменненных методов регрессии
+        grid_param = {'alpha': list(numpy.arange(0.05, 1, 0.05)),
+                      'fit_intercept': ['False', 'True']}
+        grid_search = RandomizedSearchCV(ElasticNet(), param_distributions=grid_param,
+                                         n_iter=20, scoring='neg_median_absolute_error')
+        grid_search.fit(X_train, y_train)
+        print('type = ', type_data, '  methot = ', str(ElasticNet()))
+        print(grid_search.best_params_)
+        print(grid_search.best_score_)
+
+        grid_param = {'n_iter': list(range(1, 200, 5)),
+                      'fit_intercept': ['False'],
+                      'tol': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
+                      'alpha_1': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
+                      'alpha_2': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
+                      'lambda_1': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
+                      'lambda_2': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]}
+        grid_search = RandomizedSearchCV(BayesianRidge(), param_distributions=grid_param,
+                                         n_iter=50, scoring='neg_median_absolute_error')
+        grid_search.fit(X_train, y_train)
+        print('type = ', type_data, '  methot = ', str(BayesianRidge()))
+        print(grid_search.best_params_)
+        print(grid_search.best_score_)
