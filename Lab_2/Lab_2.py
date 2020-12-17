@@ -9,6 +9,7 @@ data_frame = pandas.read_csv('train.csv')
 
 # Получение таблицы с признаками, их типом, максимальным и минимальным значениями
 data_frame.describe().to_excel('data_describe.xlsx')
+data_frame.count().to_excel('count.xlsx')
 
 # Удаление столбцов с большим кол-вом пустых значений
 data_frame = data_frame.drop(['PoolQC', 'Alley', 'FireplaceQu', 'Fence', 'MiscFeature', 'LotFrontage'], axis=1)
@@ -29,7 +30,7 @@ data_frame.reset_index(drop=True)
 
 print("Dataframe size = ", len(data_frame))
 
-pca = PCA(n_components=1)
+
 for feature in data_frame.columns:
     if data_frame[feature].dtype == object:
         data_frame[feature] = pandas.Categorical(data_frame[feature])

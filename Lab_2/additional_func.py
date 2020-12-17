@@ -91,29 +91,30 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
     for ikf, (train_index, test_index) in enumerate(kf.split(data)):
         X_train, X_test = data.values[train_index], data.values[test_index]
         y_train, y_test = df_target.values[train_index], df_target.values[test_index]
-
         # print('IT = ', ikf)
         # print('num_neth = ', num_meth)
-
         apply_clustering_method(KNeighborsClassifier(n_neighbors=35, algorithm='brute', p=2),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                5*ikf + num_meth, type_data)
+                                X_train, y_train, X_test, y_test, result_table,
+                                time_result_table, 5*ikf + num_meth, type_data)
 
         apply_clustering_method(GaussianNB(var_smoothing=0.075),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                5*ikf + num_meth, type_data)
+                                X_train, y_train, X_test, y_test, result_table,
+                                time_result_table, 5*ikf + num_meth, type_data)
 
-        apply_clustering_method(DecisionTreeClassifier(criterion='gini', min_samples_split=10, max_depth=20),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                5*ikf + num_meth, type_data)
+        apply_clustering_method(DecisionTreeClassifier(criterion='gini', min_samples_split=10,
+                                                       max_depth=20),
+                                X_train, y_train, X_test, y_test, result_table,
+                                time_result_table, 5*ikf + num_meth, type_data)
 
-        apply_clustering_method(Pipeline([("scaller", StandardScaler()), ("svm_clf", SVC(kernel="rbf", gamma=3, C=10))]),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                5*ikf + num_meth, type_data)
+        apply_clustering_method(Pipeline([("scaller", StandardScaler()),
+                                          ("svm_clf", SVC(kernel="rbf", gamma=3, C=10))]),
+                                X_train, y_train, X_test, y_test, result_table,
+                                time_result_table, 5*ikf + num_meth, type_data)
 
-        apply_clustering_method(RandomForestClassifier(n_estimators=40, criterion='gini', min_samples_split=6, max_depth=40),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                5*ikf + num_meth, type_data)
+        apply_clustering_method(RandomForestClassifier(n_estimators=40, criterion='gini',
+                                                       min_samples_split=6, max_depth=40),
+                                X_train, y_train, X_test, y_test, result_table,
+                                time_result_table, 5*ikf + num_meth, type_data)
         result_table.loc[5 * ikf+num_meth, 'it'] = ikf
         time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
 
@@ -122,8 +123,8 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         # print('num_meth = ', num_meth, '  It = ', ikf)
         #
         # grid_param = {'n_neighbors': list(range(2, 100)),
-        #                             'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
-        #                             'p': [1, 2, 3]}
+        #               'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+        #               'p': [1, 2, 3]}
         # grid_search = RandomizedSearchCV(KNeighborsClassifier(), param_distributions=grid_param, n_iter=30)
         # grid_search.fit(X_train, y_train)
         # print('type = ', type_data, '  methot = ', str(KNeighborsClassifier()))
@@ -177,3 +178,4 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         # print('type = ', type_data, '  methot = ', str(RandomForestClassifier()))
         # print(grid_search.best_params_)
         # print(grid_search.best_score_)
+
