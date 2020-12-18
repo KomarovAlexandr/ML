@@ -156,19 +156,6 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         print(grid_search.best_params_)
         print(grid_search.best_score_)
 
-        # if num_meth > 0:
-        #     grid_param = {'loss': ["squared_hinge"],
-        #                   'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-        #                   'max_iter': [1000000],
-        #                   'dual': [False],
-        #                   'penalty': ['l1']}
-        #     grid_search = RandomizedSearchCV(LinearSVC(),
-        #                                      param_distributions=grid_param, n_iter=7)
-        #     grid_search.fit(X_train, y_train)
-        #     print('type = ', type_data, '  methot = ', str(LinearSVC()))
-        #     print(grid_search.best_params_)
-        #     print(grid_search.best_score_)
-
         grid_param = {'n_estimators': range(2, 50, 2),
                       'criterion': ['gini', 'entropy'],
                       'min_samples_split': list(range(2, 12, 1)),
