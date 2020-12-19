@@ -4,24 +4,15 @@ from timeit import default_timer as timer
 from matplotlib import cm
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression, ElasticNet, LogisticRegression, BayesianRidge
+from sklearn.linear_model import LinearRegression, ElasticNet
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_log_error
 from sklearn.pipeline import make_pipeline
 import warnings
 warnings.simplefilter('ignore')
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 import matplotlib
 matplotlib.use('TkAgg')
@@ -66,7 +57,7 @@ def scatter_plot_func(df, data_num, target, name):
 
 
 """
-Функция применяющая один из методов классификации и возвращающая процент верного предсказания
+Функция применяющая один из методов регрессии и возвращающая процент верного предсказания
 модели на тестовой выборке
 """
 def apply_regression_method(model, X_train, y_train, X_test, y_test, result_table, time_result_table, it, type_data):
@@ -111,20 +102,20 @@ estimator и оценивающий результат по трем метри�
 абсолютной ошибки соответсвенно
 """
 def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
+    print('type = ', type_data, '  method = ', str(estimator))
     # Перебор для оценки по метрике r2
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
                                scoring='r2', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
-    print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'r2')
+    print('metric: ', 'r2')
     print(grid_search.best_params_)
     print(grid_search.best_score_)
-    print(grid_search.cv_results_)
 
     # Перебор для оценки по метрике средней абсолютной ошибки
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
                                scoring='neg_mean_absolute_error', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
-    print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'neg_mean_absolute_error')
+    print('metric: ', 'neg_mean_absolute_error')
     print(grid_search.best_params_)
     print(grid_search.best_score_)
 
@@ -132,7 +123,7 @@ def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
                                scoring='neg_mean_squared_error', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
-    print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'neg_mean_squared_error')
+    print('neg_mean_squared_error')
     print(grid_search.best_params_)
     print(grid_search.best_score_)
 
@@ -179,3 +170,4 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
 
         result_table.loc[3 * ikf+num_meth, 'it'] = ikf
         time_result_table.loc[3 * ikf + num_meth, 'it'] = ikf
+
