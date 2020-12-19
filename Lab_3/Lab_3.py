@@ -1,8 +1,9 @@
 import pandas, seaborn, numpy
 import matplotlib.pyplot as plt
 import additional_func as af
-from sklearn.decomposition import PCA
 from sklearn import preprocessing
+import warnings
+warnings.simplefilter('ignore')
 
 pandas.set_option('display.max_columns', None)
 DataFrame = pandas.read_csv('train.csv')
@@ -22,7 +23,6 @@ DataFrame = DataFrame[(DataFrame[["TotalBsmtSF"]] < 2000).all(axis=1)]
 DataFrame = DataFrame[(DataFrame[["TotalBsmtSF"]] > 450).all(axis=1)]
 DataFrame = DataFrame[(DataFrame[["GarageArea"]] < 1000).all(axis=1)]
 
-
 # Удаление нулей и обновление индексов
 DataFrame = DataFrame.dropna()
 DataFrame.reset_index(drop=True)
@@ -38,17 +38,6 @@ for feature in DataFrame.columns:
 # Вывод значений корреляции всех признаков с ценой в табличку
 corr = DataFrame[['SalePrice'] + DataFrame.columns.to_list()].corr().iloc[0]
 corr.sort_values().to_excel('correlation.xlsx')
-
-# Разбиение цен на группы и создание нового столбца
-# labels = [1, 2, 3]
-# price_group = pandas.cut(DataFrame['SalePrice'],
-#                     bins=[DataFrame['SalePrice'].min(),
-#                           145000,
-#                           200000,
-#                           DataFrame['SalePrice'].max()],
-#                     labels=labels)
-# DataFrame.loc[:, 'price_group'] = numpy.array(price_group)
-# af.build_bar_chart(DataFrame, 'price_group')
 
 # Дополнительное удаление пустых строк. Почему то это нужно сделать еще раз, иначе бо-бо
 DataFrame = DataFrame.dropna()
@@ -66,10 +55,10 @@ df_target = DataFrame['SalePrice']
 #     af.build_bar_chart(data_num, i)
 
 # Построение карты корреляций
-# plt.figure()
-# corr = DataFrame[attributes + ['SalePrice']].corr()
-# sns_hmap = seaborn.heatmap(abs(corr))
-# sns_hmap.set_title("correlation PANDAS + SEABORN")
+plt.figure()
+corr = DataFrame[attributes + ['SalePrice']].corr()
+sns_hmap = seaborn.heatmap(abs(corr))
+sns_hmap.set_title("correlation PANDAS + SEABORN")
 
 # таблицы для записи итоговых результатов
 result = pandas.DataFrame()
@@ -101,5 +90,5 @@ time_result.to_excel('time_result.xlsx')
 print(result)
 print(time_result)
 
-# plt.show()
+plt.show()
 pandas.reset_option('max_columns')

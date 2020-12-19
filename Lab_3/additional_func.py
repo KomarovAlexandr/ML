@@ -14,10 +14,6 @@ from sklearn.pipeline import make_pipeline
 import warnings
 warnings.simplefilter('ignore')
 from sklearn.model_selection import GridSearchCV
-import matplotlib
-matplotlib.use('TkAgg')
-from matplotlib import style
-style.use('ggplot')
 
 """
 Построение гистограммы распределения по входному признаку датафрейма
