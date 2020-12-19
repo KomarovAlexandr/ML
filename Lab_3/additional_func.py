@@ -5,12 +5,15 @@ from matplotlib import cm
 from sklearn.model_selection import KFold
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression, ElasticNet, LogisticRegression, BayesianRidge
+from sklearn.kernel_ridge import KernelRidge
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_log_error
 from sklearn.pipeline import make_pipeline
+import warnings
+warnings.simplefilter('ignore')
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
@@ -99,7 +102,6 @@ def apply_regression_method(model, X_train, y_train, X_test, y_test, result_tabl
     print('msle train: {:.3f}'.format(msle_train))
     print('msle test: {:.3f}'.format(msle_test))
 
-
     df = pandas.DataFrame({'Actual': y_test, 'Predicted': pred_test})
     print(str(model), '  ', type_data, '  IT: ', it)
     print(df)
@@ -121,72 +123,81 @@ def apply_regression_method(model, X_train, y_train, X_test, y_test, result_tabl
     # print('alg: ', label, '  type = ', type_data, '  % = ', true_pred / len(df))
 
 
-class PolynomialRegression():
-    degr = 0
-    model = 0
-    polynom_trans = 0
+"""
+Функция для использования полиноминальной регрессии при поиске набора параметров,
+дающих наилучший результат
+"""
+def PolynomialRegression(degree=2, **kwargs):
+    return make_pipeline(PolynomialFeatures(degree), LinearRegression(**kwargs))
 
-    def __init__(self, fit_intercept=True, normalize=False, copy_X=True,
-                 n_jobs=None, degree=1):
-        self.degr = degree
-        self.model = LinearRegression()
-        self.polynom_trans = PolynomialFeatures(degree=self.degr, include_bias=True)
 
-    def fit(self, X_train, y_train):
-        x_train = self.polynom_trans.fit_transform(X=X_train)
-        self.model.fit(x_train, y_train)
+"""
+Функция осущствляющая три полных перебора набора параметров grid_param для метода регрессии 
+estimator и оценивающий результат по трем метрикам: r2, средней квадратичной ошибки и средней
+абсолютной ошибки соответсвенно
+"""
+def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
+    # Перебор для оценки по метрике r2
+    grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
+                               scoring='r2', cv=3, pre_dispatch=1, n_jobs=1)
+    grid_search.fit(X_train, y_train)
+    print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'r2')
+    print(grid_search.best_params_)
+    print(grid_search.best_score_)
 
-    def predict(self, y_train):
-        return self.model.predict(y_train)
+    # Перебор для оценки по метрике средней абсолютной ошибки
+    grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
+                               scoring='neg_mean_absolute_error', cv=3, pre_dispatch=1, n_jobs=1)
+    grid_search.fit(X_train, y_train)
+    print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'neg_mean_absolute_error')
+    print(grid_search.best_params_)
+    print(grid_search.best_score_)
 
-    def get_params(self, deep=True):
-        return self.model.get_params(deep)
+    # Перебор для оценки по метрике средней квадратичной ошибки
+    grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
+                               scoring='neg_mean_squared_error', cv=3, pre_dispatch=1, n_jobs=1)
+    grid_search.fit(X_train, y_train)
+    print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'neg_mean_squared_error')
+    print(grid_search.best_params_)
+    print(grid_search.best_score_)
 
-    def set_params(self, *params):
-        self.degr = params.values()
-        self.polynom_trans = PolynomialFeatures(degree=self.degr, include_bias=True)
 
 """
 Фукнция, разбивающая датафрем на несколько наборов тренеровочных и тестовых фреймов,
 применяющая эти фреймы к раличным методам классификации
 """
 def get_analiz(data, df_target, result_table, time_result_table, type_data, num_meth):
-    kf = KFold(n_splits=2, shuffle=True, random_state=12)
-    for ikf, (train_index, test_index) in enumerate(kf.split(data)):
-        X_train, X_test = data.values[train_index], data.values[test_index]
-        y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+    # Жирный кусок для автоматического подбора параметров
+    # для всех используемых методов регрессии
+    X_train = data.values
+    y_train = df_target.values
+    grid_param = {'alpha': list(numpy.arange(0.05, 1, 0.05)),
+                  'fit_intercept': ['False', 'True']}
+    use_grid_search(X_train, y_train, ElasticNet(), grid_param, type_data)
 
-        # print('IT = ', ikf)
-        # print('num_neth = ', num_meth)
-        # LinearRegression(),
-        # apply_regression_method(ElasticNet(alpha=0.2, fit_intercept=False),
-        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
-        #                         ikf + num_meth, type_data)
+    grid_param = {'polynomialfeatures__degree': list(numpy.arange(1, 10, 1)),
+                  'linearregression__fit_intercept': [True],
+                  'linearregression__normalize': [False]}
+    use_grid_search(X_train, y_train, PolynomialRegression(), grid_param, type_data)
 
-        # result_table.loc[5 * ikf+num_meth, 'it'] = ikf
-        # time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
+    grid_param = [{'alpha': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2],
+                    'kernel': ['rbf', 'laplacian']},
+                  {'alpha': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                   'kernel': ['polynomial'],
+                   'degree': [2, 3, 4, 5, 6]}]
+    use_grid_search(X_train, y_train, KernelRidge(), grid_param, type_data)
 
-        # Жирный кусок для автоматического подбора параметров
-        # для всех вышеприменненных методов регрессии
-        grid_param = {'alpha': list(numpy.arange(0.05, 1, 0.05)),
-                      'fit_intercept': ['False', 'True']}
-        grid_search = RandomizedSearchCV(ElasticNet(), param_distributions=grid_param,
-                                         n_iter=20, scoring='neg_median_absolute_error')
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(ElasticNet()))
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
-
-        grid_param = {'n_iter': list(range(1, 200, 5)),
-                      'fit_intercept': ['False'],
-                      'tol': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-                      'alpha_1': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-                      'alpha_2': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-                      'lambda_1': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-                      'lambda_2': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]}
-        grid_search = RandomizedSearchCV(BayesianRidge(), param_distributions=grid_param,
-                                         n_iter=50, scoring='neg_median_absolute_error')
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(BayesianRidge()))
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
+    # kf = KFold(n_splits=2, shuffle=True, random_state=12)
+    # for ikf, (train_index, test_index) in enumerate(kf.split(data)):
+    #     X_train, X_test = data.values[train_index], data.values[test_index]
+    #     y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+    #
+    #     print('IT = ', ikf)
+    #     print('num_neth = ', num_meth)
+    #     LinearRegression(),
+    #     apply_regression_method(ElasticNet(alpha=0.2, fit_intercept=False),
+    #                             X_train, y_train, X_test, y_test, result_table, time_result_table,
+    #                             ikf + num_meth, type_data)
+    #
+    #     result_table.loc[5 * ikf+num_meth, 'it'] = ikf
+    #     time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf

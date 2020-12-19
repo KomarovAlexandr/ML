@@ -16,7 +16,7 @@ pandas.set_option('display.max_columns', None)
 # Поворачиваем таблицу и устанавливаем индекс
 data_frame = data_frame.set_index('Unnamed: 0')
 data_frame = data_frame.transpose()
-
+print(data_frame.describe())
 # Выбор признаков касаемых добычи ресурсов
 resource_signs = ['Archaeology', 'Expansion', 'Gold', 'Great People', 'Growth', 'Happiness', 'Infrastructure',
                   'Military Training', 'Production', 'Religion', 'Science', 'Wonder']

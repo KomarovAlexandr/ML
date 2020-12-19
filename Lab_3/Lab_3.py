@@ -54,16 +54,12 @@ corr.sort_values().to_excel('correlation.xlsx')
 DataFrame = DataFrame.dropna()
 # ИТОГОВЫЙ НАБОР ПРИЗНАКОВ
 attributes = ['GarageCars', 'GrLivArea', 'OverallQual', 'TotalBsmtSF', 'GarageArea', '1stFlrSF',
-              #'FullBath', 'TotRmsAbvGrd', 'YearBuilt',
-              'ExterQual', 'KitchenQual', 'BsmtQual'] #'GarageFinish', 'HeatingQC', 'GarageType']
-              #  'GrLivArea', 'OverallQual', 'TotalBsmtSF', 'GarageArea', '1stFlrSF'
-              # 'FullBath', 'TotRmsAbvGrd', 'YearBuilt'
-              # 'ExterQual', 'KitchenQual', 'BsmtQual', 'GarageFinish', 'HeatingQC', 'GarageType']
+              'FullBath', 'TotRmsAbvGrd', 'YearBuilt',
+              'ExterQual', 'KitchenQual', 'BsmtQual', 'GarageFinish', 'HeatingQC', 'GarageType']
 # ДАТАФРЕЙМ СО ВСЕМИ ЧИСЛЕННЫМИ ПРИЗНАКАМИ
 data_num = DataFrame[attributes]
 # ЦЕЛЕВОЙ ПРИЗНАК
 df_target = DataFrame['SalePrice']
-
 
 # Отрисовка гистограмм всех признаков из итогового набора
 # for i in attributes:

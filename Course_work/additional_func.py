@@ -13,6 +13,28 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
+# from mpl_toolkits.basemap import Basemap
+import seaborn as sns
+
+def get_map_f1():
+    pass
+    # fig = plt.figure(figsize=(12, 9))
+    # fig.set_facecolor('#FFFFFF')
+    # m = Basemap(projection='mill',
+    #             llcrnrlat=-60,
+    #             urcrnrlat=90,
+    #             llcrnrlon=-180,
+    #             urcrnrlon=180,
+    #             resolution='c')
+    # m.etopo(alpha=0.8)
+    # m.drawcoastlines()
+    # sites_lat_y = df_circuits['lat'].tolist()
+    # sites_lon_x = df_circuits['lng'].tolist()
+    # colors = sns.color_palette(None, 76)
+    # m.scatter(sites_lon_x, sites_lat_y, latlon=True, s=100, c=colors, marker='^', alpha=1, edgecolor='k', linewidth=1,
+    #           zorder=2)
+    # plt.title('Where are all the F1 circuits?', fontsize=20)
+    # plt.show()
 
 """
 Построение гистограммы распределения по входному признаку датафрейма
@@ -87,10 +109,11 @@ def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_tabl
 применяющая эти фреймы к раличным методам классификации
 """
 def get_analiz(data, df_target, result_table, time_result_table, type_data, num_meth):
-    kf = KFold(n_splits=3, shuffle=True, random_state=12)
+    kf = KFold(n_splits=5, shuffle=True, random_state=12)
     for ikf, (train_index, test_index) in enumerate(kf.split(data)):
         X_train, X_test = data.values[train_index], data.values[test_index]
         y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+        print(X_train.shape)
         # print('IT = ', ikf)
         # print('num_neth = ', num_meth)
         # apply_clustering_method(KNeighborsClassifier(n_neighbors=35, algorithm='brute', p=2),
@@ -131,7 +154,7 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         print(grid_search.best_params_)
         print(grid_search.best_score_)
 
-        grid_param = {'var_smoothing': list(numpy.arange(0, 1, 0.01))}
+        grid_param = {'var_smoothing': list(numpy.arange(0.01, 1, 0.01))}
         grid_search = RandomizedSearchCV(GaussianNB(), param_distributions=grid_param, n_iter=30)
         grid_search.fit(X_train, y_train)
         print('type = ', type_data, '  methot = ', str(GaussianNB()))
