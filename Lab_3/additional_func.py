@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_log_error
 from sklearn.pipeline import make_pipeline
 import warnings
-# warnings.simplefilter('ignore')
+warnings.simplefilter('ignore')
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
@@ -84,24 +84,17 @@ def apply_regression_method(model, X_train, y_train, X_test, y_test, result_tabl
     mse_test = mean_squared_error(y_true=y_test, y_pred=pred_y)
     mae_test = mean_absolute_error(y_true=y_test, y_pred=pred_y)
 
-    label = str(model)[:str(model).find('(')]
-    print(label)
-    print('r2 test: {:.3f}'.format(score_test))
-    print('mse test: {:.3f}'.format(mse_test))
-    print('mae test: {:.3f}'.format(mae_test))
-
-    # df = pandas.DataFrame({'Actual': y_test, 'Predicted': pred_test})
-    # print(str(model), '  ', type_data, '  IT: ', it)
-    # print(df)
-
     # формирование записи в таблице для анализа
+    label = str(model)[:str(model).find('(')]
+    result_table.loc[it, label + ' r2'] = score_test
+    result_table.loc[it, label + ' mse'] = mse_test
+    result_table.loc[it, label + ' mae'] = mae_test
 
-    # result_table.loc[it, label] = true_pred / len(df)
-    # result_table.loc[it, 'type'] = type_data
-    # time_result_table.loc[it, (label + ' ' + 'studying_time')] = studying_time_stop - studying_time_start
-    # time_result_table.loc[it, (label + ' ' + 'predict_time')] = predict_time_stop - predict_time_start
-    # time_result_table.loc[it, 'type'] = type_data
-    # print('alg: ', label, '  type = ', type_data, '  % = ', true_pred / len(df))
+    result_table.loc[it, 'type'] = type_data
+
+    time_result_table.loc[it, (label + ' ' + 'studying_time')] = studying_time_stop - studying_time_start
+    time_result_table.loc[it, (label + ' ' + 'predict_time')] = predict_time_stop - predict_time_start
+    time_result_table.loc[it, 'type'] = type_data
 
 
 """
@@ -125,6 +118,7 @@ def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
     print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'r2')
     print(grid_search.best_params_)
     print(grid_search.best_score_)
+    print(grid_search.cv_results_)
 
     # Перебор для оценки по метрике средней абсолютной ошибки
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
@@ -173,14 +167,15 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         X_train, X_test = data.values[train_index], data.values[test_index]
         y_train, y_test = df_target.values[train_index], df_target.values[test_index]
 
-        print('IT = ', ikf)
-        print('num_neth = ', num_meth)
-        apply_regression_method(ElasticNet(alpha=0.05, fit_intercept=False, normalize=False),
+        apply_regression_method(ElasticNet(alpha=0.05, fit_intercept=True, normalize=False),
                                 X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                ikf + num_meth, type_data)
-        # apply_regression_method(PolynomialRegression(degree=2, fit_intercept=True, normalize=False),
-        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
-        #                         ikf + num_meth, type_data)
+                                3*ikf + num_meth, type_data)
+        apply_regression_method(PolynomialRegression(degree=2, fit_intercept=True, normalize=False),
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                3*ikf + num_meth, type_data)
+        apply_regression_method(KernelRidge(alpha=3, degree=2, kernel='polynomial'),
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                3*ikf + num_meth, type_data)
 
-    #     # result_table.loc[5 * ikf+num_meth, 'it'] = ikf
-    #     # time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
+        result_table.loc[3 * ikf+num_meth, 'it'] = ikf
+        time_result_table.loc[3 * ikf + num_meth, 'it'] = ikf
