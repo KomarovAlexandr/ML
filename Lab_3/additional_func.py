@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_log_error
 from sklearn.pipeline import make_pipeline
 import warnings
-warnings.simplefilter('ignore')
+# warnings.simplefilter('ignore')
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
@@ -70,51 +70,32 @@ def scatter_plot_func(df, data_num, target, name):
 модели на тестовой выборке
 """
 def apply_regression_method(model, X_train, y_train, X_test, y_test, result_table, time_result_table, it, type_data):
-    degree = 4
-    polynom_trans = PolynomialFeatures(degree=degree, include_bias=True)
-    x2_train = polynom_trans.fit_transform(X=X_train)
-    x2_test = polynom_trans.transform(X=X_test)
-
     # Обучение модели
     studying_time_start = timer()
-    model.fit(x2_train, y_train)
+    model.fit(X_train, y_train)
     studying_time_stop = timer()
-
     # Предсказание
     predict_time_start = timer()
-    pred_train = model.predict(X=x2_train)
-    pred_test = model.predict(X=x2_test)
+    pred_y = model.predict(X=X_test)
     predict_time_stop = timer()
 
     # Параметры и метрики модели
-    score_train = r2_score(y_train, pred_train)
-    score_test = r2_score(y_test, pred_test)
-    mse_train = mean_squared_error(y_true=y_train, y_pred=pred_train) / X_train.shape[0]
-    mse_test = mean_squared_error(y_true=y_test, y_pred=pred_test) / X_train.shape[0]
-    mae_train = mean_absolute_error(y_true=y_train, y_pred=pred_train) / X_train.shape[0]
-    mae_test = mean_absolute_error(y_true=y_test, y_pred=pred_test) / X_train.shape[0]
-    msle_train = mean_squared_log_error(y_true=y_train, y_pred=pred_train)
-    msle_test = mean_squared_log_error(y_true=y_test, y_pred=pred_test)
-    print('r2 train: {:.3f}'.format(score_train))
+    score_test = r2_score(y_test, pred_y)
+    mse_test = mean_squared_error(y_true=y_test, y_pred=pred_y)
+    mae_test = mean_absolute_error(y_true=y_test, y_pred=pred_y)
+
+    label = str(model)[:str(model).find('(')]
+    print(label)
     print('r2 test: {:.3f}'.format(score_test))
-    print('mse train: {:.3f}'.format(mse_train))
     print('mse test: {:.3f}'.format(mse_test))
-    print('msle train: {:.3f}'.format(msle_train))
-    print('msle test: {:.3f}'.format(msle_test))
+    print('mae test: {:.3f}'.format(mae_test))
 
-    df = pandas.DataFrame({'Actual': y_test, 'Predicted': pred_test})
-    print(str(model), '  ', type_data, '  IT: ', it)
-    print(df)
+    # df = pandas.DataFrame({'Actual': y_test, 'Predicted': pred_test})
+    # print(str(model), '  ', type_data, '  IT: ', it)
+    # print(df)
 
-    plt.ioff()
-    plt.show()
-    # Оценка верного угадывания модели
-    true_pred = 0
-    for i in range(len(df)):
-        if df.at[i, 'Actual'] == df.at[i, 'Predicted']:
-            true_pred = true_pred + 1
     # формирование записи в таблице для анализа
-    # label = str(model)[:str(model).find('(')]
+
     # result_table.loc[it, label] = true_pred / len(df)
     # result_table.loc[it, 'type'] = type_data
     # time_result_table.loc[it, (label + ' ' + 'studying_time')] = studying_time_stop - studying_time_start
@@ -139,7 +120,7 @@ estimator и оценивающий результат по трем метри�
 def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
     # Перебор для оценки по метрике r2
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
-                               scoring='r2', cv=3, pre_dispatch=1, n_jobs=1)
+                               scoring='r2', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
     print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'r2')
     print(grid_search.best_params_)
@@ -147,7 +128,7 @@ def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
 
     # Перебор для оценки по метрике средней абсолютной ошибки
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
-                               scoring='neg_mean_absolute_error', cv=3, pre_dispatch=1, n_jobs=1)
+                               scoring='neg_mean_absolute_error', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
     print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'neg_mean_absolute_error')
     print(grid_search.best_params_)
@@ -155,7 +136,7 @@ def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
 
     # Перебор для оценки по метрике средней квадратичной ошибки
     grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
-                               scoring='neg_mean_squared_error', cv=3, pre_dispatch=1, n_jobs=1)
+                               scoring='neg_mean_squared_error', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
     print('type = ', type_data, '  methot = ', str(estimator), 'metric: ', 'neg_mean_squared_error')
     print(grid_search.best_params_)
@@ -169,35 +150,37 @@ def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
 def get_analiz(data, df_target, result_table, time_result_table, type_data, num_meth):
     # Жирный кусок для автоматического подбора параметров
     # для всех используемых методов регрессии
-    X_train = data.values
-    y_train = df_target.values
-    grid_param = {'alpha': list(numpy.arange(0.05, 1, 0.05)),
-                  'fit_intercept': ['False', 'True']}
-    use_grid_search(X_train, y_train, ElasticNet(), grid_param, type_data)
+    # X_train = data.values
+    # y_train = df_target.values
+    # grid_param = {'alpha': list(numpy.arange(0.05, 1, 0.05)),
+    #               'fit_intercept': ['False', 'True']}
+    # use_grid_search(X_train, y_train, ElasticNet(), grid_param, type_data)
 
-    grid_param = {'polynomialfeatures__degree': list(numpy.arange(1, 10, 1)),
-                  'linearregression__fit_intercept': [True],
-                  'linearregression__normalize': [False]}
-    use_grid_search(X_train, y_train, PolynomialRegression(), grid_param, type_data)
-
-    grid_param = [{'alpha': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2],
-                    'kernel': ['rbf', 'laplacian']},
-                  {'alpha': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                   'kernel': ['polynomial'],
-                   'degree': [2, 3, 4, 5, 6]}]
-    use_grid_search(X_train, y_train, KernelRidge(), grid_param, type_data)
-
-    # kf = KFold(n_splits=2, shuffle=True, random_state=12)
-    # for ikf, (train_index, test_index) in enumerate(kf.split(data)):
-    #     X_train, X_test = data.values[train_index], data.values[test_index]
-    #     y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+    # grid_param = {'polynomialfeatures__degree': list(numpy.arange(1, 10, 1)),
+    #               'linearregression__fit_intercept': [True],
+    #               'linearregression__normalize': [False]}
+    # use_grid_search(X_train, y_train, PolynomialRegression(), grid_param, type_data)
     #
-    #     print('IT = ', ikf)
-    #     print('num_neth = ', num_meth)
-    #     LinearRegression(),
-    #     apply_regression_method(ElasticNet(alpha=0.2, fit_intercept=False),
-    #                             X_train, y_train, X_test, y_test, result_table, time_result_table,
-    #                             ikf + num_meth, type_data)
-    #
-    #     result_table.loc[5 * ikf+num_meth, 'it'] = ikf
-    #     time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
+    # grid_param = [{'alpha': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2],
+    #                 'kernel': ['rbf', 'laplacian']},
+    #               {'alpha': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    #                'kernel': ['polynomial'],
+    #                'degree': [2, 3, 4, 5, 6]}]
+    # use_grid_search(X_train, y_train, KernelRidge(), grid_param, type_data)
+
+    kf = KFold(n_splits=5, shuffle=True, random_state=12)
+    for ikf, (train_index, test_index) in enumerate(kf.split(data)):
+        X_train, X_test = data.values[train_index], data.values[test_index]
+        y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+
+        print('IT = ', ikf)
+        print('num_neth = ', num_meth)
+        apply_regression_method(ElasticNet(alpha=0.05, fit_intercept=False, normalize=False),
+                                X_train, y_train, X_test, y_test, result_table, time_result_table,
+                                ikf + num_meth, type_data)
+        # apply_regression_method(PolynomialRegression(degree=2, fit_intercept=True, normalize=False),
+        #                         X_train, y_train, X_test, y_test, result_table, time_result_table,
+        #                         ikf + num_meth, type_data)
+
+    #     # result_table.loc[5 * ikf+num_meth, 'it'] = ikf
+    #     # time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf

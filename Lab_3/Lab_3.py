@@ -77,7 +77,7 @@ time_result = pandas.DataFrame()
 
 # ОБУЧЕНИЕ МОДЕЛЕЙ
 # Оригинальные данные
-af.get_analiz(data_num, df_target, result, time_result, 'original', 0)
+# af.get_analiz(data_num, df_target, result, time_result, 'original', 0)
 # af.scatter_plot_func(DataFrame, data_num, 'SalePrice', "ORIGINAL")
 # Стандартизация
 df_stand = preprocessing.scale(data_num)
@@ -87,7 +87,7 @@ af.get_analiz(df_stand, df_target, result, time_result, 'standardization', 1)
 # Нормализация
 df_norm = preprocessing.normalize(data_num)
 df_norm = pandas.DataFrame(data=df_norm, index=data_num.index, columns=attributes)
-af.get_analiz(df_norm, df_target, result, time_result, 'normalization', 2)
+# af.get_analiz(df_norm, df_target, result, time_result, 'normalization', 2)
 # af.scatter_plot_func(DataFrame, df_norm, 'SalePrice', "NORMALIZATION")
 
 # Вывод в таблицы excel
