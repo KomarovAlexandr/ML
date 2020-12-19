@@ -113,7 +113,7 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
     for ikf, (train_index, test_index) in enumerate(kf.split(data)):
         X_train, X_test = data.values[train_index], data.values[test_index]
         y_train, y_test = df_target.values[train_index], df_target.values[test_index]
-        print(X_train.shape)
+
         # print('IT = ', ikf)
         # print('num_neth = ', num_meth)
         # apply_clustering_method(KNeighborsClassifier(n_neighbors=35, algorithm='brute', p=2),
@@ -148,14 +148,14 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         grid_param = {'n_neighbors': list(range(2, 20)),
                       'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
                       'p': [1, 2, 3]}
-        grid_search = RandomizedSearchCV(KNeighborsClassifier(), param_distributions=grid_param, n_iter=30)
+        grid_search = GridSearchCV(KNeighborsClassifier(), param_grid=grid_param, cv=5)
         grid_search.fit(X_train, y_train)
         print('type = ', type_data, '  methot = ', str(KNeighborsClassifier()))
         print(grid_search.best_params_)
         print(grid_search.best_score_)
 
         grid_param = {'var_smoothing': list(numpy.arange(0.01, 1, 0.01))}
-        grid_search = RandomizedSearchCV(GaussianNB(), param_distributions=grid_param, n_iter=30)
+        grid_search = GridSearchCV(GaussianNB(), param_grid=grid_param, cv=5)
         grid_search.fit(X_train, y_train)
         print('type = ', type_data, '  methot = ', str(GaussianNB()))
         print(grid_search.best_params_)
@@ -164,7 +164,7 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         grid_param = {'criterion': ['gini', 'entropy'],
                       'min_samples_split': list(range(2, 12, 1)),
                       'max_depth': list(range(1, 100, 1))}
-        grid_search = RandomizedSearchCV(DecisionTreeClassifier(), param_distributions=grid_param, n_iter=30)
+        grid_search = GridSearchCV(DecisionTreeClassifier(), param_grid=grid_param, cv=5)
         grid_search.fit(X_train, y_train)
         print('type = ', type_data, '  methot = ', str(DecisionTreeClassifier()))
         print(grid_search.best_params_)
@@ -173,7 +173,7 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
         grid_param = {'kernel': ["rbf"],
                       'gamma': numpy.arange(0.1, 5, 0.1),
                       'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]}
-        grid_search = RandomizedSearchCV(SVC(), param_distributions=grid_param, n_iter=30)
+        grid_search = GridSearchCV(SVC(), param_grid=grid_param, cv=5)
         grid_search.fit(X_train, y_train)
         print('type = ', type_data, '  methot = ', str(SVC()), '  rbf')
         print(grid_search.best_params_)
@@ -183,7 +183,7 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
                       'criterion': ['gini', 'entropy'],
                       'min_samples_split': list(range(2, 12, 1)),
                       'max_depth': list(range(1, 100, 1))}
-        grid_search = RandomizedSearchCV(RandomForestClassifier(), param_distributions=grid_param, n_iter=30)
+        grid_search = GridSearchCV(RandomForestClassifier(), param_grid=grid_param, cv=5)
         grid_search.fit(X_train, y_train)
         print('type = ', type_data, '  methot = ', str(RandomForestClassifier()))
         print(grid_search.best_params_)

@@ -28,6 +28,7 @@ character_signs = ['Boldness', 'Chattiness', 'Denounce Willingness', 'Diplomatic
 # Предсказываемые параметры
 Predicted_parameters = ['Culture', 'Diplomacy', 'Spaceship']
 
+
 data_frame[Predicted_parameters].hist()
 scatter_matrix(data_frame[resource_signs])
 param = ['Culture', 'Diplomacy', 'Spaceship', 'Gold', 'Growth','Infrastructure', 'Production', 'Religion', 'Science', 'Boldness', 'War']
@@ -85,6 +86,9 @@ data_frame = data_frame.dropna()
 # for Spaceship
 attributes = ['Guarded', 'Wonder', 'Diplomatic Balance', 'Science',
               'Air', 'Naval Tile Improvement', 'Chattiness', 'Meanness', 'Gold']
+
+for f in attributes:
+    af.build_bar_chart(data_frame, f)
 
 # ДАТАФРЕЙМ СО ВСЕМИ ЧИСЛЕННЫМИ ПРИЗНАКАМИ
 data_num = data_frame[attributes]
