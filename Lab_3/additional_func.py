@@ -70,18 +70,24 @@ def apply_regression_method(model, X_train, y_train, X_test, y_test, result_tabl
     score_test = r2_score(y_test, pred_y)
     mse_test = mean_squared_error(y_true=y_test, y_pred=pred_y)
     mae_test = mean_absolute_error(y_true=y_test, y_pred=pred_y)
+    # Расчет средней относительной ошибки
+    mre = (abs(y_test - pred_y) / y_test).mean()
+    mae_pr = mae_test / y_test.mean()
 
     # формирование записи в таблице для анализа
     label = str(model)[:str(model).find('(')]
     result_table.loc[it, label + ' r2'] = score_test
     result_table.loc[it, label + ' mse'] = mse_test
     result_table.loc[it, label + ' mae'] = mae_test
+    result_table.loc[it, label + ' mae %'] = mae_pr
+    result_table.loc[it, label + ' mre'] = mre
 
     result_table.loc[it, 'type'] = type_data
 
     time_result_table.loc[it, (label + ' ' + 'studying_time')] = studying_time_stop - studying_time_start
     time_result_table.loc[it, (label + ' ' + 'predict_time')] = predict_time_stop - predict_time_start
     time_result_table.loc[it, 'type'] = type_data
+    # print('it = ', it, '   label = ', label, '   type = ', type_data)
 
 
 """
