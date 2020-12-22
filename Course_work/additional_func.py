@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy, pandas
+import numpy, pandas, seaborn
 from timeit import default_timer as timer
 from matplotlib import cm
 from sklearn.model_selection import KFold
@@ -13,28 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
-# from mpl_toolkits.basemap import Basemap
-import seaborn as sns
 
-def get_map_f1():
-    pass
-    # fig = plt.figure(figsize=(12, 9))
-    # fig.set_facecolor('#FFFFFF')
-    # m = Basemap(projection='mill',
-    #             llcrnrlat=-60,
-    #             urcrnrlat=90,
-    #             llcrnrlon=-180,
-    #             urcrnrlon=180,
-    #             resolution='c')
-    # m.etopo(alpha=0.8)
-    # m.drawcoastlines()
-    # sites_lat_y = df_circuits['lat'].tolist()
-    # sites_lon_x = df_circuits['lng'].tolist()
-    # colors = sns.color_palette(None, 76)
-    # m.scatter(sites_lon_x, sites_lat_y, latlon=True, s=100, c=colors, marker='^', alpha=1, edgecolor='k', linewidth=1,
-    #           zorder=2)
-    # plt.title('Where are all the F1 circuits?', fontsize=20)
-    # plt.show()
 
 """
 Построение гистограммы распределения по входному признаку датафрейма
@@ -105,87 +84,88 @@ def apply_clustering_method(model, X_train, y_train, X_test, y_test, result_tabl
 
 
 """
+Функция осущствляющая полный перебор набора параметров grid_param для метода классификации 
+estimator и оценивающий результат. Вывод в консоль и запись в файл результатов. 
+"""
+def use_grid_search(X_train, y_train, estimator, grid_param, type_data, Output_file):
+    print('type = ', type_data, '  method = ', str(estimator))
+    grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
+                               scoring='accuracy', cv=6, pre_dispatch=1, n_jobs=1)
+    grid_search.fit(X_train, y_train)
+    print(grid_search.best_params_)
+    print(grid_search.best_score_)
+    Output_file.write('type = ' + str(type_data) + '  method = ' + str(estimator) + '\n')
+    Output_file.write(str(grid_search.best_params_) + '\n')
+    Output_file.write(str(grid_search.best_score_) + '\n')
+
+
+"""
 Фукнция, разбивающая датафрем на несколько наборов тренеровочных и тестовых фреймов,
 применяющая эти фреймы к раличным методам классификации
 """
 def get_analiz(data, df_target, result_table, time_result_table, type_data, num_meth):
-    kf = KFold(n_splits=5, shuffle=True, random_state=12)
-    for ikf, (train_index, test_index) in enumerate(kf.split(data)):
-        X_train, X_test = data.values[train_index], data.values[test_index]
-        y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+    pass
+    # Жирный кусок для автоматического подбора параметров
+    # для всех используемых методов классификации
+    # Output_file = open('GridSearchCV.txt', 'a', encoding="utf8")
+    #
+    # X_train = data.values
+    # y_train = df_target.values
+    #
+    # grid_param = {'n_neighbors': list(range(2, 20)),
+    #               'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
+    #               'p': [1, 2, 3]}
+    # use_grid_search(X_train, y_train, KNeighborsClassifier(), grid_param, type_data, Output_file)
+    #
+    # grid_param = {'var_smoothing': list(numpy.arange(0.01, 1, 0.01))}
+    # use_grid_search(X_train, y_train, GaussianNB(), grid_param, type_data, Output_file)
+    #
+    # grid_param = {'criterion': ['gini', 'entropy'],
+    #               'min_samples_split': list(range(2, 12, 1)),
+    #               'max_depth': list(range(1, 100, 1))}
+    # use_grid_search(X_train, y_train, DecisionTreeClassifier(), grid_param, type_data, Output_file)
+    #
+    # grid_param = {'kernel': ["rbf"],
+    #               'gamma': numpy.arange(0.1, 5, 0.1),
+    #               'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]}
+    # use_grid_search(X_train, y_train, SVC(), grid_param, type_data, Output_file)
+    #
+    # grid_param = {'n_estimators': range(2, 50, 4),
+    #               'criterion': ['gini', 'entropy'],
+    #               'min_samples_split': list(range(2, 12, 2)),
+    #               'max_depth': list(range(1, 100, 5))}
+    # use_grid_search(X_train, y_train, RandomForestClassifier(), grid_param, type_data, Output_file)
+    # Output_file.close()
 
-        # print('IT = ', ikf)
-        # print('num_neth = ', num_meth)
-        # apply_clustering_method(KNeighborsClassifier(n_neighbors=35, algorithm='brute', p=2),
-        #                         X_train, y_train, X_test, y_test, result_table,
-        #                         time_result_table, 5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(GaussianNB(var_smoothing=0.075),
-        #                         X_train, y_train, X_test, y_test, result_table,
-        #                         time_result_table, 5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(DecisionTreeClassifier(criterion='gini', min_samples_split=10,
-        #                                                max_depth=20),
-        #                         X_train, y_train, X_test, y_test, result_table,
-        #                         time_result_table, 5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(Pipeline([("scaller", StandardScaler()),
-        #                                   ("svm_clf", SVC(kernel="rbf", gamma=3, C=10))]),
-        #                         X_train, y_train, X_test, y_test, result_table,
-        #                         time_result_table, 5*ikf + num_meth, type_data)
-        #
-        # apply_clustering_method(RandomForestClassifier(n_estimators=40, criterion='gini',
-        #                                                min_samples_split=6, max_depth=40),
-        #                         X_train, y_train, X_test, y_test, result_table,
-        #                         time_result_table, 5*ikf + num_meth, type_data)
-        # result_table.loc[5 * ikf+num_meth, 'it'] = ikf
-        # time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
-
-        # Жирный кусок для автоматического подбора параметров
-        # для всех вышеприменненных методов классификации
-        print('num_meth = ', num_meth, '  It = ', ikf)
-
-        grid_param = {'n_neighbors': list(range(2, 20)),
-                      'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
-                      'p': [1, 2, 3]}
-        grid_search = GridSearchCV(KNeighborsClassifier(), param_grid=grid_param, cv=5)
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(KNeighborsClassifier()))
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
-
-        grid_param = {'var_smoothing': list(numpy.arange(0.01, 1, 0.01))}
-        grid_search = GridSearchCV(GaussianNB(), param_grid=grid_param, cv=5)
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(GaussianNB()))
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
-
-        grid_param = {'criterion': ['gini', 'entropy'],
-                      'min_samples_split': list(range(2, 12, 1)),
-                      'max_depth': list(range(1, 100, 1))}
-        grid_search = GridSearchCV(DecisionTreeClassifier(), param_grid=grid_param, cv=5)
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(DecisionTreeClassifier()))
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
-
-        grid_param = {'kernel': ["rbf"],
-                      'gamma': numpy.arange(0.1, 5, 0.1),
-                      'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000]}
-        grid_search = GridSearchCV(SVC(), param_grid=grid_param, cv=5)
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(SVC()), '  rbf')
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
-
-        grid_param = {'n_estimators': range(2, 50, 2),
-                      'criterion': ['gini', 'entropy'],
-                      'min_samples_split': list(range(2, 12, 1)),
-                      'max_depth': list(range(1, 100, 1))}
-        grid_search = GridSearchCV(RandomForestClassifier(), param_grid=grid_param, cv=5)
-        grid_search.fit(X_train, y_train)
-        print('type = ', type_data, '  methot = ', str(RandomForestClassifier()))
-        print(grid_search.best_params_)
-        print(grid_search.best_score_)
+    # kf = KFold(n_splits=5, shuffle=True, random_state=12)
+    # for ikf, (train_index, test_index) in enumerate(kf.split(data)):
+    #     X_train, X_test = data.values[train_index], data.values[test_index]
+    #     y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+    #
+    #     # print('IT = ', ikf)
+    #     # print('num_neth = ', num_meth)
+    #     # apply_clustering_method(KNeighborsClassifier(n_neighbors=35, algorithm='brute', p=2),
+    #     #                         X_train, y_train, X_test, y_test, result_table,
+    #     #                         time_result_table, 5*ikf + num_meth, type_data)
+    #     #
+    #     # apply_clustering_method(GaussianNB(var_smoothing=0.075),
+    #     #                         X_train, y_train, X_test, y_test, result_table,
+    #     #                         time_result_table, 5*ikf + num_meth, type_data)
+    #     #
+    #     # apply_clustering_method(DecisionTreeClassifier(criterion='gini', min_samples_split=10,
+    #     #                                                max_depth=20),
+    #     #                         X_train, y_train, X_test, y_test, result_table,
+    #     #                         time_result_table, 5*ikf + num_meth, type_data)
+    #     #
+    #     # apply_clustering_method(Pipeline([("scaller", StandardScaler()),
+    #     #                                   ("svm_clf", SVC(kernel="rbf", gamma=3, C=10))]),
+    #     #                         X_train, y_train, X_test, y_test, result_table,
+    #     #                         time_result_table, 5*ikf + num_meth, type_data)
+    #     #
+    #     # apply_clustering_method(RandomForestClassifier(n_estimators=40, criterion='gini',
+    #     #                                                min_samples_split=6, max_depth=40),
+    #     #                         X_train, y_train, X_test, y_test, result_table,
+    #     #                         time_result_table, 5*ikf + num_meth, type_data)
+    #     # result_table.loc[5 * ikf+num_meth, 'it'] = ikf
+    #     # time_result_table.loc[5 * ikf + num_meth, 'it'] = ikf
 

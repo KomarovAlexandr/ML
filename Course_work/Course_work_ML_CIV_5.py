@@ -1,4 +1,4 @@
-import pandas, numpy
+import pandas, numpy, seaborn
 import matplotlib.pyplot as plt
 from pandas.plotting import scatter_matrix
 import additional_func as af
@@ -16,9 +16,13 @@ pandas.set_option('display.max_columns', None)
 # Поворачиваем таблицу и устанавливаем индекс
 data_frame = data_frame.set_index('Unnamed: 0')
 data_frame = data_frame.transpose()
-print(data_frame.describe())
+
+# Удаление неинформативных признаков
+data_frame = data_frame.drop(['Airlift', 'Archaeology', 'Land Trade', 'Sea Trade', 'Trade Destination', 'Trade Origin'],
+                             axis=1)
+
 # Выбор признаков касаемых добычи ресурсов
-resource_signs = ['Archaeology', 'Expansion', 'Gold', 'Great People', 'Growth', 'Happiness', 'Infrastructure',
+resource_signs = ['Expansion', 'Gold', 'Great People', 'Growth', 'Happiness', 'Infrastructure',
                   'Military Training', 'Production', 'Religion', 'Science', 'Wonder']
 # Выбор признаков черт характера персонажа
 character_signs = ['Boldness', 'Chattiness', 'Denounce Willingness', 'Diplomatic Balance', 'Friendship Willingness',
@@ -28,13 +32,7 @@ character_signs = ['Boldness', 'Chattiness', 'Denounce Willingness', 'Diplomatic
 # Предсказываемые параметры
 Predicted_parameters = ['Culture', 'Diplomacy', 'Spaceship']
 
-
-data_frame[Predicted_parameters].hist()
-scatter_matrix(data_frame[resource_signs])
-param = ['Culture', 'Diplomacy', 'Spaceship', 'Gold', 'Growth','Infrastructure', 'Production', 'Religion', 'Science', 'Boldness', 'War']
-scatter_matrix(data_frame[param])
-
-corr = data_frame[['Spaceship'] + data_frame.columns.to_list()].corr().iloc[0]
+corr = data_frame[['Culture'] + data_frame.columns.to_list()].corr().iloc[0]
 corr.sort_values().to_excel('correlation.xlsx')
 # def build_gistogramm(feature):
 #     plt.figure(num='plt.bar result ' + feature)
@@ -78,22 +76,36 @@ data_frame = data_frame.dropna()
 
 # ИТОГОВЫЙ НАБОР ПРИЗНАКОВ
 # for Culture
-# attributes = ['Expansion', 'Military Training', 'Victory Competitiveness', 'War', 'Gold', 'CS Bully',
-#               'Growth', 'Warmonger Hatred', 'Guarded', 'Religion', 'Friendly', 'CS Protect']
+attributes = ['Expansion', 'Military Training', 'Victory Competitiveness', 'War', 'Gold', 'CS Bully', 'Air', 'Recon',
+              'Water Connection', 'Hostile', 'Production',
+              'Defense', 'Wonder', 'CS Friendly', 'Growth', 'Warmonger Hatred', 'Guarded', 'Religion',
+              'Friendly', 'CS Protect']
 # for Diplomacy
-# attributes = ['Air', 'Naval Tile Improvement', 'Chattiness', 'Meanness', 'Gold',
-#               'Build Nuke', 'Deceptive', 'Neediness', 'Guarded', 'Wonder', 'Diplomatic Balance', 'Science']
+# attributes = ['CS Conquest', 'Long Range', 'Meanness', 'CS Bully', 'Growth', 'Deceptive',
+#               'Aircraft Carrier', 'Friendship Willingness', 'Forgiveness', 'Chattiness', 'Warmonger Hatred',
+#               'Defense', 'Great People', 'CS Friendly', 'CS Protect']
 # for Spaceship
-attributes = ['Guarded', 'Wonder', 'Diplomatic Balance', 'Science',
-              'Air', 'Naval Tile Improvement', 'Chattiness', 'Meanness', 'Gold']
+# attributes = ['Defense', 'Wonder', 'CS Friendly', 'Growth', 'Warmonger Hatred', 'Guarded', 'Religion', 'Friendly',
+#               'CS Protect',
+#               'Expansion', 'Military Training', 'Victory Competitiveness', 'War', 'Gold', 'CS Bully', 'Air', 'Recon',
+#               'Water Connection', 'Hostile', 'Production', 'Meanness', 'Denounce Willingness']
 
-for f in attributes:
-    af.build_bar_chart(data_frame, f)
+# for f in attributes:
+#     af.build_bar_chart(data_frame, f)
 
 # ДАТАФРЕЙМ СО ВСЕМИ ЧИСЛЕННЫМИ ПРИЗНАКАМИ
 data_num = data_frame[attributes]
 # ЦЕЛЕВОЙ ПРИЗНАК
-df_target = data_frame['Spaceship']
+df_target = data_frame['Culture']
+
+# Вывод всех гистограмм
+fig_hist = data_num.hist(xlabelsize=8, ylabelsize=8, figsize=(35, 35))
+[x.title.set_size(8) for x in fig_hist.ravel()]
+
+plt.figure()
+corr = data_frame[attributes + ['Culture']].corr()
+sns_hmap = seaborn.heatmap(corr)
+sns_hmap.set_title("correlation")
 
 # таблицы для записи итоговых результатов
 result = pandas.DataFrame()
