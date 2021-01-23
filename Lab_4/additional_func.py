@@ -119,6 +119,7 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
     #               'fit_intercept': ['False', 'True']}
     # use_grid_search(X_train, y_train, ElasticNet(), grid_param, type_data)
 
+
     X_train, X_test = data.values[train_index], data.values[test_index]
     y_train, y_test = df_target.values[train_index], df_target.values[test_index]
 
