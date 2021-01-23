@@ -91,14 +91,6 @@ def apply_regression_method(model, X_train, y_train, X_test, y_test, result_tabl
 
 
 """
-Функция для использования полиноминальной регрессии при поиске набора параметров,
-дающих наилучший результат
-"""
-def PolynomialRegression(degree=2, **kwargs):
-    return make_pipeline(PolynomialFeatures(degree), LinearRegression(**kwargs))
-
-
-"""
 Функция осущствляющая три полных перебора набора параметров grid_param для метода регрессии 
 estimator и оценивающий результат по трем метрикам: r2, средней квадратичной ошибки и средней
 абсолютной ошибки соответсвенно
@@ -110,22 +102,6 @@ def use_grid_search(X_train, y_train, estimator, grid_param, type_data):
                                scoring='r2', cv=5, pre_dispatch=1, n_jobs=1)
     grid_search.fit(X_train, y_train)
     print('metric: ', 'r2')
-    print(grid_search.best_params_)
-    print(grid_search.best_score_)
-
-    # Перебор для оценки по метрике средней абсолютной ошибки
-    grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
-                               scoring='neg_mean_absolute_error', cv=5, pre_dispatch=1, n_jobs=1)
-    grid_search.fit(X_train, y_train)
-    print('metric: ', 'neg_mean_absolute_error')
-    print(grid_search.best_params_)
-    print(grid_search.best_score_)
-
-    # Перебор для оценки по метрике средней квадратичной ошибки
-    grid_search = GridSearchCV(estimator=estimator, param_grid=grid_param,
-                               scoring='neg_mean_squared_error', cv=5, pre_dispatch=1, n_jobs=1)
-    grid_search.fit(X_train, y_train)
-    print('neg_mean_squared_error')
     print(grid_search.best_params_)
     print(grid_search.best_score_)
 
@@ -143,33 +119,12 @@ def get_analiz(data, df_target, result_table, time_result_table, type_data, num_
     #               'fit_intercept': ['False', 'True']}
     # use_grid_search(X_train, y_train, ElasticNet(), grid_param, type_data)
 
-    # grid_param = {'polynomialfeatures__degree': list(numpy.arange(1, 10, 1)),
-    #               'linearregression__fit_intercept': [True],
-    #               'linearregression__normalize': [False]}
-    # use_grid_search(X_train, y_train, PolynomialRegression(), grid_param, type_data)
-    #
-    # grid_param = [{'alpha': [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2],
-    #                 'kernel': ['rbf', 'laplacian']},
-    #               {'alpha': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    #                'kernel': ['polynomial'],
-    #                'degree': [2, 3, 4, 5, 6]}]
-    # use_grid_search(X_train, y_train, KernelRidge(), grid_param, type_data)
+    X_train, X_test = data.values[train_index], data.values[test_index]
+    y_train, y_test = df_target.values[train_index], df_target.values[test_index]
 
-    kf = KFold(n_splits=5, shuffle=True, random_state=12)
-    for ikf, (train_index, test_index) in enumerate(kf.split(data)):
-        X_train, X_test = data.values[train_index], data.values[test_index]
-        y_train, y_test = df_target.values[train_index], df_target.values[test_index]
+    apply_regression_method(ElasticNet(alpha=0.05, fit_intercept=True, normalize=False),
+                            X_train, y_train, X_test, y_test, result_table, time_result_table,
+                            3*ikf + num_meth, type_data)
 
-        apply_regression_method(ElasticNet(alpha=0.05, fit_intercept=True, normalize=False),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                3*ikf + num_meth, type_data)
-        apply_regression_method(PolynomialRegression(degree=2, fit_intercept=True, normalize=False),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                3*ikf + num_meth, type_data)
-        apply_regression_method(KernelRidge(alpha=3, degree=2, kernel='polynomial'),
-                                X_train, y_train, X_test, y_test, result_table, time_result_table,
-                                3*ikf + num_meth, type_data)
 
-        result_table.loc[3 * ikf+num_meth, 'it'] = ikf
-        time_result_table.loc[3 * ikf + num_meth, 'it'] = ikf
 
