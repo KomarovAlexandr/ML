@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy, pandas
 from matplotlib import cm
 from sklearn.decomposition import PCA
-
+from timeit import default_timer as timer
 import warnings
 warnings.simplefilter('ignore')
 from sklearn.model_selection import GridSearchCV
@@ -50,10 +50,13 @@ def scatter_plot_func(df, data_num, target, name):
 """
 def show_klasters(reduced_data, model, labels_true, method):
     print("-------", method, "--------")
+    studying_time_start = timer()
     labels = model.fit_predict(reduced_data)
+    studying_time_stop = timer()
+    print("studying_time ", studying_time_stop - studying_time_start)
     print("silhouette_score ", metrics.silhouette_score(reduced_data, labels, metric='euclidean'))
     print("davies_bouldin_score ", metrics.davies_bouldin_score(reduced_data, labels))
-    print("adjusted_rand_score", metrics.adjusted_rand_score(labels_true, labels))
+    #print("adjusted_rand_score", metrics.adjusted_rand_score(labels_true, labels))
 
     h_x = (reduced_data[:, 0].max() - reduced_data[:, 0].min()) / 200
     h_y = (reduced_data[:, 1].max() - reduced_data[:, 1].min()) / 200
@@ -64,7 +67,10 @@ def show_klasters(reduced_data, model, labels_true, method):
 
     # Получим результат для каждой точки сетки и выведем диаграмму
     try:
+        predict_time_start = timer()
         Z = model.predict(numpy.c_[xx.ravel(), yy.ravel()])
+        predict_time_stop = timer()
+        print("predictg_time ", predict_time_stop - predict_time_start)
         Z = Z.reshape(xx.shape)
         plt.figure()
         plt.clf()
